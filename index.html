@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPS SpA · Reportería Clave</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
+<style>
+  :root{
+    --bg-page-1:#1B1140;
+    --bg-page-2:#0A0714;
+    --bg-page-3:#050308;
+    --bg-card:#17112C;
+    --bg-card-hover:#1F1838;
+    --bg-hero:linear-gradient(135deg,#1B1140 0%,#241448 45%,#3B1E5C 100%);
+    --text-primary:#F5F3FA;
+    --text-secondary:#9C93B8;
+    --text-on-dark-muted:#C8BEDF;
+    --accent:#8B6FF0;
+    --accent-2:#B18CFF;
+    --teal:#4FD1C5;
+    --gold:#F2C94A;
+    --pink:#EC6FBB;
+    --accent-orange:#F2994A;
+    --danger:#FF6B5B;
+    --ok:#3DDC84;
+    --border-subtle:rgba(255,255,255,.08);
+    --radius-lg:18px;
+    --radius:14px;
+    --gap:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;
+    background:radial-gradient(circle at 25% -10%, var(--bg-page-1) 0%, var(--bg-page-2) 55%, var(--bg-page-3) 100%);
+    background-attachment:fixed;
+    color:var(--text-primary);
+    min-height:100vh;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px;}
+
+  .hero{
+    background:var(--bg-hero);
+    border:1px solid rgba(255,255,255,.08);
+    box-shadow:0 20px 40px -20px rgba(0,0,0,.6);
+    border-radius:var(--radius-lg);padding:26px 28px;margin-bottom:var(--gap);color:#fff;
+    display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;
+  }
+  .hero .brand{font-size:11px;letter-spacing:1.5px;color:var(--text-on-dark-muted);text-transform:uppercase;font-weight:600;}
+  .hero h1{font-size:25px;font-weight:800;margin:6px 0 0;letter-spacing:-0.5px;}
+  .hero .controls{display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+  .hero .controls-row{display:flex;gap:8px;align-items:center;}
+  .hero select{
+    background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.25);
+    border-radius:9px;padding:8px 14px;font-size:12.5px;
+  }
+  .hero select option{background:#17112C;color:#fff;}
+  .btn-refresh{
+    background:var(--accent);color:#fff;border:none;border-radius:9px;padding:8px 14px;
+    font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;
+  }
+  .btn-refresh:disabled{opacity:.6;cursor:default;}
+  .sync-status{font-size:10.5px;color:var(--text-on-dark-muted);text-align:right;}
+  .sync-status.err{color:var(--danger);}
+  .sync-status.ok{color:var(--ok);}
+
+  .tabs{display:flex;gap:6px;margin-bottom:var(--gap);flex-wrap:wrap;}
+  .tab-btn{
+    background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:9px;
+    padding:9px 16px;font-size:13px;font-weight:600;color:var(--text-secondary);cursor:pointer;
+    transition:background .15s ease,color .15s ease;
+  }
+  .tab-btn:hover{background:var(--bg-card-hover);color:var(--text-primary);}
+  .tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .section{display:none;}
+  .section.active{display:block;}
+
+  .live-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ok);}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 0 rgba(61,220,132,.6);animation:livepulse 1.6s infinite;}
+  @keyframes livepulse{
+    0%{box-shadow:0 0 0 0 rgba(61,220,132,.55);}
+    70%{box-shadow:0 0 0 7px rgba(61,220,132,0);}
+    100%{box-shadow:0 0 0 0 rgba(61,220,132,0);}
+  }
+
+  .divider{display:flex;align-items:center;gap:10px;margin:26px 0 16px;color:var(--text-secondary);font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;}
+  .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border-subtle);}
+
+  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px;}
+  .kpi-card{
+    background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius);padding:14px 16px;
+    transition:background .15s ease,transform .15s ease,border-color .15s ease;
+  }
+  .kpi-card:hover{background:var(--bg-card-hover);border-color:rgba(255,255,255,.16);transform:translateY(-1px);}
+  .kpi-card.accent .kpi-label{color:var(--accent-2);}
+  .kpi-card.risk .kpi-label{color:var(--danger);}
+  .kpi-label{font-size:10.5px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.4px;font-weight:600;}
+  .kpi-value{font-size:20px;font-weight:800;margin-top:5px;color:var(--text-primary);}
+  .kpi-card.risk .kpi-value{color:var(--danger);}
+  .kpi-sub{font-size:10.5px;color:var(--text-secondary);margin-top:2px;}
+
+  .section-label{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin:18px 0 8px;}
+
+  .grid-2{display:grid;grid-template-columns:1.3fr 1fr;gap:var(--gap);margin-bottom:var(--gap);}
+  .card{
+    background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:18px 20px;
+    transition:background .15s ease,border-color .15s ease;
+  }
+  .card:hover{background:var(--bg-card-hover);border-color:rgba(255,255,255,.14);}
+  .card h3{font-size:13.5px;font-weight:700;color:var(--text-primary);margin:0 0 4px;}
+  .card .hint{font-size:10.5px;color:var(--text-secondary);margin:0 0 12px;}
+  .card canvas{max-height:260px;}
+
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  thead th{
+    text-align:left;padding:8px 9px;border-bottom:2px solid var(--border-subtle);
+    color:var(--text-secondary);font-weight:700;font-size:10.5px;text-transform:uppercase;
+    letter-spacing:.3px;cursor:pointer;white-space:nowrap;
+  }
+  thead th:hover{color:var(--text-primary);}
+  tbody td{padding:8px 9px;border-bottom:1px solid var(--border-subtle);white-space:nowrap;color:var(--text-primary);}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover td{background:var(--bg-card-hover);}
+
+  .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10.5px;font-weight:600;background:rgba(139,111,240,.18);color:var(--accent-2);}
+  .pill.bad{background:rgba(255,107,91,.18);color:var(--danger);}
+
+  .filter-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+  .mor-filter{background:rgba(255,255,255,.05);border:1px solid var(--border-subtle);border-radius:7px;padding:6px 12px;font-size:11px;font-weight:600;color:var(--text-secondary);cursor:pointer;transition:background .15s ease;}
+  .mor-filter:hover{background:rgba(255,255,255,.09);}
+  .mor-filter.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+  .footer{text-align:center;font-size:11px;color:var(--text-secondary);margin-top:22px;}
+
+  .banner{
+    display:none;border-radius:var(--radius);padding:12px 16px;margin-bottom:var(--gap);
+    font-size:12.5px;font-weight:600;border:1px solid var(--border-subtle);
+  }
+  .banner.error{display:block;background:rgba(255,107,91,.1);color:var(--danger);}
+  .banner.loading{display:block;background:rgba(139,111,240,.1);color:var(--accent-2);}
+
+  @media (max-width:900px){
+    .kpi-row{grid-template-columns:repeat(2,1fr);}
+    .grid-2{grid-template-columns:1fr;}
+    .hero{flex-direction:column;}
+    .hero .controls{align-items:flex-start;}
+    .sync-status{text-align:left;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div>
+      <div class="brand">SPS SpA</div>
+      <h1>Panel de control</h1>
+    </div>
+    <div class="controls">
+      <div class="controls-row">
+        <select id="monthSel"></select>
+        <button class="btn-refresh" id="btnRefresh">↻ Actualizar</button>
+      </div>
+      <div class="sync-status" id="syncStatus">Cargando datos del Sheet…</div>
+    </div>
+  </div>
+
+  <div class="banner error" id="errorBanner"></div>
+  <div class="banner loading" id="loadingBanner">Cargando datos en vivo desde Google Sheets…</div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="pago">Pago y Morosidad</button>
+    <button class="tab-btn" data-tab="financiero">Financiero</button>
+    <button class="tab-btn" data-tab="cartera">Cartera</button>
+    <button class="tab-btn" data-tab="crm">CRM</button>
+  </div>
+
+  <!-- ===== PAGO Y MOROSIDAD ===== -->
+  <section class="section active" id="sec-pago">
+
+    <div class="section-label">Morosidad · vista consolidada <span class="live-badge"><span class="live-dot"></span>En vivo</span></div>
+    <p class="hint" style="margin:-4px 0 12px;color:var(--text-secondary);font-size:10.5px;">Snapshot del mes en curso · no cambia con el selector de mes</p>
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-label">A pagar acumulado</div><div class="kpi-value" id="k-snap-apagar">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">Morosidad acumulada</div><div class="kpi-value" id="k-snap-mora">-</div></div>
+      <div class="kpi-card risk"><div class="kpi-label">% Comport. riesgo</div><div class="kpi-value" id="k-snap-riesgo">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">Días mora prom. (snapshot)</div><div class="kpi-value" id="k-snap-dias">-</div></div>
+    </div>
+    <div class="kpi-row" style="grid-template-columns:repeat(2,1fr);max-width:400px;">
+      <div class="kpi-card risk"><div class="kpi-label">% Morosidad acumulada</div><div class="kpi-value" id="k-snap-pctmora">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">Morosidad mes ($, actual)</div><div class="kpi-value" id="k-snap-moramespesos">-</div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:var(--gap);">
+      <h3>Seguimiento por cliente</h3>
+      <div class="filter-row" style="margin-top:12px;">
+        <button class="mor-filter active" data-filter="todos">Todos</button>
+        <button class="mor-filter" data-filter="riesgo">🟠🔴 Riesgo/Malo</button>
+        <button class="mor-filter" data-filter="regular">🟡 Regular</button>
+        <button class="mor-filter" data-filter="bueno">🔵 Bueno</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="morosidadTable">
+          <thead>
+            <tr>
+              <th>Cliente</th><th>Luz FH</th><th>Luz L7</th><th>Agua L7</th><th>Arriendo</th><th>Total deuda</th><th>Estado</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:var(--gap);">
+      <h3>Clientes por calificación de pago</h3>
+      <p class="hint">Según días de atraso · SEGUIMIENTO_MOROSIDAD</p>
+      <div style="max-width:360px;margin:0 auto;">
+        <canvas id="chartCalificacion"></canvas>
+      </div>
+    </div>
+
+    <div class="divider">Información del mes seleccionado</div>
+
+    <div class="section-label">Rendimiento de pago del mes</div>
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-label">A pagar mes</div><div class="kpi-value" id="k-apagar">-</div><div class="kpi-sub" id="k-apagar-chg"></div></div>
+      <div class="kpi-card"><div class="kpi-label">Mora acumulada</div><div class="kpi-value" id="k-mora">-</div></div>
+      <div class="kpi-card accent"><div class="kpi-label">Clientes morosos</div><div class="kpi-value" id="k-morosos">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">% Clientes en riesgo</div><div class="kpi-value" id="k-riesgo">-</div></div>
+    </div>
+    <div class="kpi-row" style="grid-template-columns:repeat(2,1fr);max-width:400px;">
+      <div class="kpi-card risk"><div class="kpi-label">$ en riesgo (mes)</div><div class="kpi-value" id="k-enriesgo">-</div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Pago arriendo vs % mora mes</h3>
+        <canvas id="chartPago"></canvas>
+      </div>
+      <div class="card">
+        <h3>$ en riesgo y días de mora promedio</h3>
+        <canvas id="chartMora"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FINANCIERO ===== -->
+  <section class="section" id="sec-financiero">
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-label">Ingresos totales proyectados</div><div class="kpi-value" id="k-ingresos">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">Egresos totales proyectados</div><div class="kpi-value" id="k-egresos">-</div></div>
+      <div class="kpi-card accent"><div class="kpi-label">Flujo neto proyectado</div><div class="kpi-value" id="k-flujo">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">Saldo final caja proyectado</div><div class="kpi-value" id="k-saldo">-</div></div>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-label">Egresos fijos / mes</div><div class="kpi-value" id="k-egresosfijosmes">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">Egresos variables / mes</div><div class="kpi-value" id="k-egresosvarmes">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">Inversiones financieras</div><div class="kpi-value" id="k-inversiones">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">Garantías</div><div class="kpi-value" id="k-garantias">-</div></div>
+    </div>
+    <div class="kpi-row" style="grid-template-columns:1fr;">
+      <div class="kpi-card" style="max-width:220px;"><div class="kpi-label">Cumpl. presupuesto</div><div class="kpi-value" id="k-cumpl">-</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Ingresos vs egresos por mes</h3>
+        <p class="hint">$ millones · egresos fijos y variables apilados</p>
+        <canvas id="chartFinanciero"></canvas>
+      </div>
+      <div class="card">
+        <h3>Evolución de egresos totales</h3>
+        <p class="hint">$ millones · reales (histórico) vs proyección anual (hoja FLUJO CAJA)</p>
+        <canvas id="chartEgresos"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CARTERA ===== -->
+  <section class="section" id="sec-cartera">
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-label">UF/mes total</div><div class="kpi-value" id="k-ufmes">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">M² arrendados</div><div class="kpi-value" id="k-m2">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">UF/m² (mes)</div><div class="kpi-value" id="k-ufm2mes">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">Nº contratos activos</div><div class="kpi-value" id="k-cttos">-</div></div>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-label">UF/mes s/OH</div><div class="kpi-value" id="k-ufmessoh">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">M² s/OH</div><div class="kpi-value" id="k-m2soh">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">UF/mes proy. Dic.</div><div class="kpi-value" id="k-ufmesdic">-</div></div>
+      <div class="kpi-card accent"><div class="kpi-label">Contratos a vencer &lt;90d</div><div class="kpi-value" id="k-venc90">-</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>UF/mes por propiedad</h3>
+        <canvas id="chartCartera"></canvas>
+      </div>
+      <div class="card">
+        <h3>Evolución UF/mes total vs s/OH</h3>
+        <p class="hint">s/OH = sin Honorinda/Oliver</p>
+        <canvas id="chartUFEvol"></canvas>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Evolución UF/m² s/OH</h3>
+        <p class="hint">s/OH = sin Honorinda/Oliver (excluidos de este cálculo) · escala 0–0,02</p>
+        <canvas id="chartUFM2SOH"></canvas>
+      </div>
+      <div class="card">
+        <h3>Evolución m² s/OH</h3>
+        <p class="hint">s/OH = sin Honorinda/Oliver</p>
+        <canvas id="chartSOHComp"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CRM ===== -->
+  <section class="section" id="sec-crm">
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-label">Total visitas (acum.)</div><div class="kpi-value" id="k-visitas">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">Total leads (acum.)</div><div class="kpi-value" id="k-leads">-</div></div>
+      <div class="kpi-card accent"><div class="kpi-label">Gestiones realizadas (acum.)</div><div class="kpi-value" id="k-gestiones">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">Tasa visita → arrienda</div><div class="kpi-value" id="k-tasa">-</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Visitas y leads por mes</h3>
+        <canvas id="chartCRM"></canvas>
+      </div>
+      <div class="card">
+        <h3>Gestiones realizadas por mes</h3>
+        <canvas id="chartGestiones"></canvas>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:var(--gap);">
+      <h3>Visitas y leads por propiedad (acum.)</h3>
+      <p class="hint">Acumulado desde enero hasta el mes seleccionado</p>
+      <canvas id="chartCRMProp"></canvas>
+    </div>
+  </section>
+
+  <div class="footer" id="footerNote">
+    SPS SpA · Conectado en vivo a Google Sheets (Reportería Clave / HISTORIAL_CIERRES + SEGUIMIENTO_MOROSIDAD + FLUJO CAJA)
+  </div>
+</div>
+
+<script>
+// ===== Conexión en vivo al Google Sheet vía JSONP (gviz) =====
+// El Sheet debe estar compartido como "Cualquiera con el enlace puede ver".
+const SHEET_ID = '1yi7P5px1eQ9pz49lzolyWaaHvoUIq-CC17iewsmB7OI';
+
+Chart.defaults.color = '#9C93B8';
+Chart.defaults.borderColor = 'rgba(255,255,255,.08)';
+Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15,10,28,.95)';
+Chart.defaults.plugins.tooltip.titleColor = '#F5F3FA';
+Chart.defaults.plugins.tooltip.bodyColor = '#F5F3FA';
+Chart.defaults.plugins.tooltip.borderColor = 'rgba(255,255,255,.1)';
+Chart.defaults.plugins.tooltip.borderWidth = 1;
+Chart.defaults.plugins.tooltip.padding = 10;
+
+function gvizJSONP(sheetName, range){
+  return new Promise((resolve, reject)=>{
+    const cbName = 'gvizCB_' + Math.random().toString(36).slice(2);
+    const timeoutId = setTimeout(()=>{ cleanup(); reject(new Error('timeout')); }, 15000);
+    function cleanup(){
+      clearTimeout(timeoutId);
+      delete window[cbName];
+      if(script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cbName] = (resp)=>{
+      cleanup();
+      if(!resp || resp.status === 'error'){ reject(new Error('gviz error')); return; }
+      resolve(resp.table);
+    };
+    const url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json;responseHandler:' + cbName
+      + '&sheet=' + encodeURIComponent(sheetName) + '&range=' + encodeURIComponent(range);
+    const script = document.createElement('script');
+    script.src = url;
+    script.onerror = ()=>{ cleanup(); reject(new Error('network')); };
+    document.body.appendChild(script);
+  });
+}
+
+function rowsOf(table){
+  if(!table || !table.rows) return [];
+  return table.rows.map(r => r.c.map(c => c ? c.v : null));
+}
+
+const SUMMARY_LABEL = /^(Total|PROMEDIO|Variaci|TOTAL)/i;
+function isMonthRow(row){
+  return row[0] != null && typeof row[0] === 'string' && !SUMMARY_LABEL.test(row[0]);
+}
+function numOrNull(v){ return typeof v === 'number' ? v : null; }
+function pct(v){ return (typeof v === 'number') ? v * 100 : null; }
+
+const PROP_LABELS = ['F. Hualpencillo','Lote 7','Lote 8','Lote 1A','Lote 5A','Golondrinas','Fundo Lenga','Chacra'];
+const CALIF_COLORS = {
+  'BUENO': '#3DDC84', 'REGULAR': '#F2C94A', 'MALO': '#F2994A',
+  'RIESGOSO': '#FF6B5B', 'TOMAR ACCIONES': '#C8492B',
+};
+
+async function fetchAllData(){
+  const [pagoT, financieroT, carteraT, crmT, morosidadT, snap1T, snap2T, moraMesT, flujoT, califT] = await Promise.all([
+    gvizJSONP('HISTORIAL_CIERRES', 'A1:M14'),
+    gvizJSONP('HISTORIAL_CIERRES', 'A35:M48'),
+    gvizJSONP('HISTORIAL_CIERRES', 'A18:Y31'),
+    gvizJSONP('HISTORIAL_CIERRES', 'A52:AC65'),
+    gvizJSONP('SEGUIMIENTO_MOROSIDAD', 'A4:G50'),
+    gvizJSONP('SEGUIMIENTO_MOROSIDAD', 'I1:P2'),
+    gvizJSONP('SEGUIMIENTO_MOROSIDAD', 'I4:N5'),
+    gvizJSONP('SEGUIMIENTO_MOROSIDAD', 'O4:O5'),
+    gvizJSONP('FLUJO CAJA', 'A1:N9'),
+    gvizJSONP('SEGUIMIENTO_MOROSIDAD', 'I7:L13'),
+  ]);
+
+  const PAGO_ALL = rowsOf(pagoT).filter(isMonthRow).map(r => ({
+    aPagar: numOrNull(r[2]), moraAcum: numOrNull(r[3]), moraMesPct: pct(r[5]),
+    clientesActivos: numOrNull(r[7]), clientesMorosos: numOrNull(r[8]), pctRiesgo: pct(r[9]),
+    diasMoraProm: numOrNull(r[10]), enRiesgo: numOrNull(r[12]),
+  }));
+
+  const FINANCIERO_ALL = rowsOf(financieroT).filter(isMonthRow).map(r => ({
+    ingresos: numOrNull(r[2]), egresosFijos: numOrNull(r[3]), egresosVariables: numOrNull(r[4]),
+    flujoNeto: numOrNull(r[5]), saldoFinal: numOrNull(r[6]),
+    egresosFijosMes: numOrNull(r[8]), egresosVariablesMes: numOrNull(r[9]),
+    cumplPpto: typeof r[10] === 'number' ? Math.round(r[10] * 100) : null,
+    inversiones: numOrNull(r[11]), garantias: numOrNull(r[12]),
+  }));
+
+  const CARTERA_ALL = rowsOf(carteraT).filter(isMonthRow).map(r => ({
+    nCttos: numOrNull(r[2]), ufMesTotal: numOrNull(r[3]), m2: numOrNull(r[4]), ufM2Mes: numOrNull(r[5]),
+    ufMesSOH: numOrNull(r[6]), m2SOH: numOrNull(r[7]), ufM2SOH: numOrNull(r[8]),
+    ufMesProyDic: numOrNull(r[24]),
+    cttosVenc90: numOrNull(r[10]),
+    props: { FH: r[18] || 0, L7: r[19] || 0, L8: r[20] || 0, FL: r[21] || 0, GL: r[22] || 0, A5A: r[23] || 0 },
+  }));
+
+  const CRM_ALL = rowsOf(crmT).filter(isMonthRow).map(r => ({
+    visitas: numOrNull(r[3]), leads: numOrNull(r[4]), gestiones: numOrNull(r[5]), arrendoConSPS: r[25] || 0,
+    visitasProp: r.slice(6, 14).map(v => v || 0),
+    leadsProp: r.slice(14, 22).map(v => v || 0),
+  }));
+
+  const flujoRows = rowsOf(flujoT);
+  const flujoByLabel = {};
+  flujoRows.forEach(r => {
+    const key = (r[0] || '').replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ]/g, '').toUpperCase();
+    flujoByLabel[key] = r.slice(1, 13); // Ene..Dic (columna N=Total se descarta)
+  });
+  const FLUJO_CAJA = {
+    ingresos: flujoByLabel['INGRESOS'] || [],
+    egresosFijos: flujoByLabel['EGRESOSFIJOS'] || [],
+    egresosVariables: flujoByLabel['EGRESOSVARIABLES'] || [],
+    totalEgresos: flujoByLabel['TOTALEGRESOS'] || [],
+    saldoFinal: flujoByLabel['SALDOFINAL'] || [],
+  };
+
+  function categorize(estado){
+    if(!estado) return 'sinregistro';
+    if(/⚪/.test(estado)) return 'sinregistro';
+    if(/🔵/.test(estado)) return 'bueno';
+    if(/🟡/.test(estado)) return 'regular';
+    if(/🟠|🔴/.test(estado)) return 'riesgo';
+    return 'sinregistro';
+  }
+  const MOROSIDAD = rowsOf(morosidadT).filter(r => r[0] && !SUMMARY_LABEL.test(r[0])).map(r => ({
+    cliente: r[0], luzFH: r[1] || 0, luzL7: r[2] || 0, aguaL7: r[3] || 0, arriendo: r[4] || 0,
+    estado: r[6] || '⚪ Sin registro', cat: categorize(r[6]),
+  }));
+
+  const CALIF = rowsOf(califT).filter(r => r[0] != null).map(r => ({
+    diasAtraso: r[0], calificacion: r[1], nClientes: r[2] || 0, pctClientes: pct(r[3]) || 0,
+  }));
+
+  const snap1 = rowsOf(snap1T)[0] || [];
+  const snap2 = rowsOf(snap2T)[0] || [];
+  const moraMesRow = rowsOf(moraMesT)[0] || [];
+  const SNAPSHOT = {
+    aPagar: snap1[0] ?? null,
+    moraAcumPesos: snap1[1] ?? null,
+    moraAcumUF: snap1[2] ?? null,
+    pctMoraAcum: pct(snap1[3]),
+    pctComportRiesgo: pct(snap2[0]),
+    diasMoraProm: snap2[3] ?? null,
+    moraMesPesos: moraMesRow[0] ?? null,
+  };
+
+  return { PAGO_ALL, FINANCIERO_ALL, CARTERA_ALL, CRM_ALL, MOROSIDAD, CALIF, SNAPSHOT, FLUJO_CAJA };
+}
+
+// ===== Estado y render =====
+const MONTH_LABELS_FULL = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+let PAGO=[], FINANCIERO=[], CARTERA=[], CRM=[], MOROSIDAD=[], CALIF=[], SNAPSHOT={}, FLUJO_CAJA={};
+let MONTH_LABELS = [];
+
+function fmtM(v){
+  if(v===null||v===undefined||Number.isNaN(v)) return '-';
+  const abs=Math.abs(v);
+  if(abs>=1e6) return (v>=0?'$':'-$')+(abs/1e6).toFixed(1)+'M';
+  if(abs>=1e3) return (v>=0?'$':'-$')+(abs/1e3).toFixed(0)+'K';
+  return '$'+v.toFixed(0);
+}
+function fmtPct(v){ return v===null||v===undefined?'-':v.toFixed(1)+'%'; }
+function fmtNum(v, decimals){
+  return v===null||v===undefined ? '-' : v.toLocaleString('es-CL',{minimumFractionDigits:decimals,maximumFractionDigits:decimals});
+}
+
+// Da formato a los tooltips de Chart.js con la unidad real del dato (ej. "49.0 M" en vez de "49.004")
+function tooltipUnit(suffixByAxis, decimals){
+  decimals = decimals===undefined ? 1 : decimals;
+  return function(ctx){
+    let v = typeof ctx.parsed === 'number' ? ctx.parsed : ctx.parsed.y;
+    if(v===undefined||v===null) v = ctx.parsed.x;
+    const label = ctx.label!=null && ctx.dataset.label==null ? ctx.label : ctx.dataset.label;
+    if(typeof v!=='number') return label+': '+v;
+    const axisId = ctx.dataset.yAxisID || 'y';
+    const suffix = typeof suffixByAxis==='string' ? suffixByAxis : (suffixByAxis[axisId] || '');
+    return label+': '+v.toLocaleString('es-CL',{minimumFractionDigits:decimals,maximumFractionDigits:decimals})+suffix;
+  };
+}
+
+const COLOR_PURPLE = '#8B6FF0';
+const COLOR_ORANGE = '#F2994A';
+const COLOR_MUTED = '#C8BEDF';
+const COLOR_TEAL = '#4FD1C5';
+const COLOR_GOLD = '#F2C94A';
+const COLOR_PINK = '#EC6FBB';
+
+const monthSel = document.getElementById('monthSel');
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('sec-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+const charts = {};
+function makeChart(id, config){
+  if(charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id).getContext('2d'), config);
+}
+
+function renderMorosidad(filter){
+  const tbody = document.querySelector('#morosidadTable tbody');
+  tbody.innerHTML = '';
+  const rows = MOROSIDAD.filter(r => filter==='todos' || r.cat===filter)
+    .map(r => ({ ...r, total: r.luzFH+r.luzL7+r.aguaL7+r.arriendo }))
+    .sort((a,b) => b.total - a.total);
+  const totals = { luzFH:0, luzL7:0, aguaL7:0, arriendo:0, total:0 };
+  rows.forEach(r=>{
+    totals.luzFH += r.luzFH; totals.luzL7 += r.luzL7; totals.aguaL7 += r.aguaL7;
+    totals.arriendo += r.arriendo; totals.total += r.total;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r.cliente}</td>
+      <td>${r.luzFH?fmtM(r.luzFH):'-'}</td>
+      <td>${r.luzL7?fmtM(r.luzL7):'-'}</td>
+      <td>${r.aguaL7?fmtM(r.aguaL7):'-'}</td>
+      <td>${r.arriendo?fmtM(r.arriendo):'-'}</td>
+      <td style="font-weight:700;">${fmtM(r.total)}</td>
+      <td><span class="pill ${r.cat==='riesgo'?'bad':''}">${r.estado}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  if(rows.length){
+    const trTotal = document.createElement('tr');
+    trTotal.style.fontWeight = '700';
+    trTotal.style.borderTop = '2px solid var(--border-subtle)';
+    trTotal.innerHTML = `
+      <td>Total</td>
+      <td>${fmtM(totals.luzFH)}</td>
+      <td>${fmtM(totals.luzL7)}</td>
+      <td>${fmtM(totals.aguaL7)}</td>
+      <td>${fmtM(totals.arriendo)}</td>
+      <td>${fmtM(totals.total)}</td>
+      <td></td>
+    `;
+    tbody.appendChild(trTotal);
+  }
+}
+document.querySelectorAll('.mor-filter').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.mor-filter').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    renderMorosidad(btn.dataset.filter);
+  });
+});
+
+function render(){
+  const i = parseInt(monthSel.value);
+  const p = PAGO[i], f = FINANCIERO[i], c = CARTERA[i];
+  const prevP = i>0 ? PAGO[i-1] : null;
+
+  document.getElementById('k-apagar').textContent = fmtM(p.aPagar);
+  const chgEl = document.getElementById('k-apagar-chg');
+  if(prevP && prevP.aPagar!=null && p.aPagar!=null){
+    const chg = ((p.aPagar-prevP.aPagar)/prevP.aPagar*100);
+    chgEl.textContent = (chg>=0?'+':'')+chg.toFixed(1)+'% vs mes anterior';
+  } else { chgEl.textContent=''; }
+  document.getElementById('k-mora').textContent = fmtM(p.moraAcum);
+  document.getElementById('k-morosos').textContent = (p.clientesMorosos!=null && p.clientesActivos!=null) ? p.clientesMorosos+' / '+p.clientesActivos : '-';
+  document.getElementById('k-riesgo').textContent = fmtPct(p.pctRiesgo);
+  document.getElementById('k-enriesgo').textContent = fmtM(p.enRiesgo);
+
+  document.getElementById('k-snap-apagar').textContent = fmtM(SNAPSHOT.aPagar);
+  document.getElementById('k-snap-mora').textContent = SNAPSHOT.moraAcumUF!=null
+    ? fmtM(SNAPSHOT.moraAcumPesos)+' ('+SNAPSHOT.moraAcumUF.toFixed(1)+' UF)'
+    : fmtM(SNAPSHOT.moraAcumPesos);
+  document.getElementById('k-snap-riesgo').textContent = fmtPct(SNAPSHOT.pctComportRiesgo);
+  document.getElementById('k-snap-dias').textContent = SNAPSHOT.diasMoraProm!=null ? Math.round(SNAPSHOT.diasMoraProm) : '-';
+  document.getElementById('k-snap-pctmora').textContent = fmtPct(SNAPSHOT.pctMoraAcum);
+  document.getElementById('k-snap-moramespesos').textContent = fmtM(SNAPSHOT.moraMesPesos);
+
+  document.getElementById('k-ingresos').textContent = fmtM(f.ingresos);
+  document.getElementById('k-egresos').textContent = (f.egresosFijos!=null && f.egresosVariables!=null) ? fmtM(f.egresosFijos+f.egresosVariables) : '-';
+  document.getElementById('k-flujo').textContent = fmtM(f.flujoNeto);
+  document.getElementById('k-saldo').textContent = fmtM(f.saldoFinal);
+  document.getElementById('k-cumpl').textContent = f.cumplPpto==null?'-':f.cumplPpto+'%';
+  document.getElementById('k-egresosfijosmes').textContent = fmtM(f.egresosFijosMes);
+  document.getElementById('k-egresosvarmes').textContent = fmtM(f.egresosVariablesMes);
+  document.getElementById('k-inversiones').textContent = fmtM(f.inversiones);
+  document.getElementById('k-garantias').textContent = fmtM(f.garantias);
+
+  document.getElementById('k-ufmes').textContent = fmtNum(c.ufMesTotal, 1);
+  document.getElementById('k-m2').textContent = fmtNum(c.m2, 0);
+  document.getElementById('k-ufm2mes').textContent = fmtNum(c.ufM2Mes, 4);
+  document.getElementById('k-cttos').textContent = c.nCttos!=null ? c.nCttos : '-';
+  document.getElementById('k-venc90').textContent = c.cttosVenc90==null?'-':c.cttosVenc90;
+  document.getElementById('k-ufmesdic').textContent = fmtNum(c.ufMesProyDic, 1);
+  document.getElementById('k-ufmessoh').textContent = fmtNum(c.ufMesSOH, 1);
+  document.getElementById('k-m2soh').textContent = fmtNum(c.m2SOH, 0);
+
+  let accV=0, accL=0, accG=0, accArr=0;
+  const accVisitasProp = new Array(8).fill(0), accLeadsProp = new Array(8).fill(0);
+  for(let k=0;k<=i;k++){
+    accV+=(CRM[k].visitas||0); accL+=(CRM[k].leads||0); accG+=(CRM[k].gestiones||0); accArr+=(CRM[k].arrendoConSPS||0);
+    for(let pI=0;pI<8;pI++){ accVisitasProp[pI]+=CRM[k].visitasProp[pI]; accLeadsProp[pI]+=CRM[k].leadsProp[pI]; }
+  }
+  document.getElementById('k-visitas').textContent = accV;
+  document.getElementById('k-leads').textContent = accL;
+  document.getElementById('k-gestiones').textContent = accG;
+  document.getElementById('k-tasa').textContent = accV>0 ? ((accArr/accV*100).toFixed(0)+'%') : '-';
+
+  const labels = MONTH_LABELS.slice(0, i+1);
+  const toM = v => v==null ? null : v/1e6;
+
+  makeChart('chartPago', {
+    type:'line',
+    data:{ labels, datasets:[
+      {label:'A pagar', data: PAGO.slice(0,i+1).map(d=>toM(d.aPagar)), borderColor:COLOR_PURPLE, backgroundColor:COLOR_PURPLE+'22', borderWidth:2.5, tension:.3, fill:true, yAxisID:'y', spanGaps:false},
+      {label:'% mora mes', data: PAGO.slice(0,i+1).map(d=>d.moraMesPct), borderColor:COLOR_ORANGE, borderWidth:2, borderDash:[4,3], tension:.3, yAxisID:'y1', spanGaps:false}
+    ]},
+    options:{ responsive:true, interaction:{mode:'index',intersect:false},
+      plugins:{ tooltip:{ callbacks:{ label: tooltipUnit({y:' M', y1:'%'}) } } },
+      scales:{ y:{min:0, beginAtZero:true, title:{display:true,text:'$M'}}, y1:{position:'right',min:0,max:10,title:{display:true,text:'%'},grid:{drawOnChartArea:false}} } }
+  });
+
+  makeChart('chartMora', {
+    data:{ labels, datasets:[
+      {type:'bar', label:'$ en riesgo (M)', data: PAGO.slice(0,i+1).map(d=>toM(d.enRiesgo)), backgroundColor:COLOR_ORANGE+'CC', yAxisID:'y'},
+      {type:'line', label:'Días mora prom.', data: PAGO.slice(0,i+1).map(d=>d.diasMoraProm), borderColor:COLOR_MUTED, borderWidth:2.5, tension:.3, yAxisID:'y1', spanGaps:false}
+    ]},
+    options:{ responsive:true, interaction:{mode:'index',intersect:false},
+      plugins:{ tooltip:{ callbacks:{ label: tooltipUnit({y:' M', y1:' días'}) } } },
+      scales:{ y:{title:{display:true,text:'$M'}}, y1:{position:'right',min:0,title:{display:true,text:'días'},grid:{drawOnChartArea:false}} } }
+  });
+
+  makeChart('chartFinanciero', {
+    type:'bar',
+    data:{ labels, datasets:[
+      {label:'Ingresos', data: FINANCIERO.slice(0,i+1).map(d=>toM(d.ingresos)), backgroundColor:COLOR_PURPLE, stack:'ingresos'},
+      {label:'Egresos fijos', data: FINANCIERO.slice(0,i+1).map(d=>toM(d.egresosFijos)), backgroundColor:COLOR_TEAL, stack:'egresos'},
+      {label:'Egresos variables', data: FINANCIERO.slice(0,i+1).map(d=>toM(d.egresosVariables)), backgroundColor:COLOR_GOLD, stack:'egresos'},
+    ]},
+    options:{ responsive:true,
+      plugins:{ tooltip:{ callbacks:{ label: tooltipUnit(' M') } } },
+      scales:{ x:{stacked:true}, y:{stacked:true, title:{display:true,text:'$M'}} } }
+  });
+
+  const egresosReales = MONTH_LABELS_FULL.map((_,idx)=> idx < FINANCIERO.length && FINANCIERO[idx].egresosFijosMes!=null && FINANCIERO[idx].egresosVariablesMes!=null
+    ? (FINANCIERO[idx].egresosFijosMes+FINANCIERO[idx].egresosVariablesMes)/1e6 : null);
+  const egresosProy = MONTH_LABELS_FULL.map((_,idx)=> typeof FLUJO_CAJA.totalEgresos[idx]==='number' ? FLUJO_CAJA.totalEgresos[idx]/1e6 : null);
+  makeChart('chartEgresos', {
+    type:'line',
+    data:{ labels: MONTH_LABELS_FULL, datasets:[
+      {label:'Egresos reales', data: egresosReales, borderColor:COLOR_TEAL, backgroundColor:COLOR_TEAL+'18', fill:true, borderWidth:2.5, tension:.3, spanGaps:false},
+      {label:'Proyección (Flujo de Caja)', data: egresosProy, borderColor:COLOR_PINK, borderDash:[4,3], borderWidth:2.5, tension:.3, spanGaps:true, pointRadius:3}
+    ]},
+    options:{ responsive:true,
+      plugins:{ tooltip:{ callbacks:{ label: tooltipUnit(' M') } } },
+      scales:{ y:{title:{display:true,text:'$M'}} } }
+  });
+
+  makeChart('chartCartera', {
+    type:'bar',
+    data:{ labels:['F. Hualpencillo','Lote 7','Lote 8','Fundo Lenga','GL','1A/5A'],
+      datasets:[{ label:'UF/mes', data:[c.props.FH,c.props.L7,c.props.L8,c.props.FL,c.props.GL,c.props.A5A], backgroundColor:COLOR_PURPLE }]},
+    options:{ indexAxis:'y', responsive:true, plugins:{legend:{display:false}, tooltip:{callbacks:{label: tooltipUnit(' UF')}}} }
+  });
+
+  makeChart('chartUFEvol', {
+    type:'line',
+    data:{ labels, datasets:[
+      {label:'UF/mes total', data: CARTERA.slice(0,i+1).map(d=>d.ufMesTotal), borderColor:COLOR_PURPLE, borderWidth:2.5, tension:.3, spanGaps:false},
+      {label:'UF/mes s/OH', data: CARTERA.slice(0,i+1).map(d=>d.ufMesSOH), borderColor:COLOR_ORANGE, borderDash:[4,3], borderWidth:2.5, tension:.3, spanGaps:false}
+    ]},
+    options:{ responsive:true, plugins:{ tooltip:{ callbacks:{ label: tooltipUnit(' UF') } } } }
+  });
+
+  makeChart('chartUFM2SOH', {
+    type:'line',
+    data:{ labels, datasets:[
+      {label:'UF/m² s/OH', data: CARTERA.slice(0,i+1).map(d=>d.ufM2SOH), borderColor:COLOR_ORANGE, backgroundColor:COLOR_ORANGE+'22', fill:true, borderWidth:2.5, tension:.3, spanGaps:false}
+    ]},
+    options:{ responsive:true,
+      plugins:{ tooltip:{ callbacks:{ label: tooltipUnit(' UF/m²', 4) } } },
+      scales:{ y:{min:0, max:0.02, title:{display:true,text:'UF/m²'}} } }
+  });
+
+  makeChart('chartSOHComp', {
+    type:'line',
+    data:{ labels, datasets:[
+      {label:'M² s/OH', data: CARTERA.slice(0,i+1).map(d=>d.m2SOH), borderColor:COLOR_PURPLE, backgroundColor:COLOR_PURPLE+'22', fill:true, borderWidth:2.5, tension:.3, spanGaps:false}
+    ]},
+    options:{ responsive:true, plugins:{legend:{display:false}, tooltip:{callbacks:{label: tooltipUnit(' m²', 0)}}} }
+  });
+
+  makeChart('chartCRM', {
+    type:'bar',
+    data:{ labels, datasets:[
+      {label:'Visitas', data: CRM.slice(0,i+1).map(d=>d.visitas), backgroundColor:COLOR_PURPLE},
+      {label:'Leads', data: CRM.slice(0,i+1).map(d=>d.leads), backgroundColor:COLOR_ORANGE},
+    ]},
+    options:{ responsive:true, plugins:{ tooltip:{ callbacks:{ label: tooltipUnit('', 0) } } } }
+  });
+
+  makeChart('chartGestiones', {
+    type:'bar',
+    data:{ labels, datasets:[
+      {label:'Gestiones realizadas', data: CRM.slice(0,i+1).map(d=>d.gestiones), backgroundColor:COLOR_MUTED}
+    ]},
+    options:{ responsive:true, plugins:{legend:{display:false}, tooltip:{callbacks:{label: tooltipUnit('', 0)}}} }
+  });
+
+  makeChart('chartCRMProp', {
+    type:'bar',
+    data:{ labels: PROP_LABELS, datasets:[
+      {label:'Visitas', data: accVisitasProp, backgroundColor:COLOR_PURPLE},
+      {label:'Leads', data: accLeadsProp, backgroundColor:COLOR_ORANGE},
+    ]},
+    options:{ indexAxis:'y', responsive:true, plugins:{ tooltip:{ callbacks:{ label: tooltipUnit('', 0) } } } }
+  });
+
+  makeChart('chartCalificacion', {
+    type:'doughnut',
+    data:{ labels: CALIF.map(x=>x.calificacion), datasets:[
+      { data: CALIF.map(x=>Math.round(x.pctClientes*10)/10), backgroundColor: CALIF.map(x=>CALIF_COLORS[(x.calificacion||'').toUpperCase()] || COLOR_MUTED), borderWidth:0 }
+    ]},
+    options:{ responsive:true, plugins:{
+      legend:{position:'bottom', labels:{boxWidth:12}},
+      tooltip:{callbacks:{label: tooltipUnit('%')}}
+    } }
+  });
+}
+
+function setStatus(text, cls){
+  const el = document.getElementById('syncStatus');
+  el.textContent = text;
+  el.className = 'sync-status' + (cls ? ' '+cls : '');
+}
+
+function countPopulated(arr, keyFn){
+  let c = 0;
+  arr.forEach((r,idx)=>{ if(keyFn(r) != null) c = idx+1; });
+  return c;
+}
+
+async function loadAndRender(){
+  const btn = document.getElementById('btnRefresh');
+  const loadingBanner = document.getElementById('loadingBanner');
+  const errorBanner = document.getElementById('errorBanner');
+  btn.disabled = true;
+  loadingBanner.style.display = 'block';
+  errorBanner.style.display = 'none';
+  setStatus('Cargando datos del Sheet…');
+  try{
+    const data = await fetchAllData();
+    MOROSIDAD = data.MOROSIDAD; SNAPSHOT = data.SNAPSHOT; FLUJO_CAJA = data.FLUJO_CAJA; CALIF = data.CALIF;
+
+    const nMonths = Math.max(
+      countPopulated(data.PAGO_ALL, r=>r.aPagar),
+      countPopulated(data.FINANCIERO_ALL, r=>r.ingresos),
+      countPopulated(data.CARTERA_ALL, r=>r.ufMesTotal),
+      countPopulated(data.CRM_ALL, r=>r.visitas)
+    );
+    if(nMonths===0){ throw new Error('sin-datos'); }
+
+    PAGO = data.PAGO_ALL.slice(0,nMonths); FINANCIERO = data.FINANCIERO_ALL.slice(0,nMonths);
+    CARTERA = data.CARTERA_ALL.slice(0,nMonths); CRM = data.CRM_ALL.slice(0,nMonths);
+    MONTH_LABELS = MONTH_LABELS_FULL.slice(0, nMonths);
+
+    monthSel.innerHTML = '';
+    MONTH_LABELS.forEach((lbl,idx)=>{
+      const opt=document.createElement('option');
+      opt.value=idx; opt.textContent=lbl+' 2026';
+      monthSel.appendChild(opt);
+    });
+    monthSel.value = nMonths-1;
+
+    const now = new Date();
+    setStatus('Sincronizado ' + now.toLocaleTimeString('es-CL'), 'ok');
+
+    renderMorosidad('todos');
+    render();
+  }catch(err){
+    errorBanner.style.display='block';
+    errorBanner.textContent = 'No se pudo cargar el Sheet en vivo. Verifica que esté compartido como "Cualquiera con el enlace puede ver" y vuelve a intentar. (' + err.message + ')';
+    setStatus('Error de sincronización', 'err');
+  }finally{
+    loadingBanner.style.display='none';
+    btn.disabled = false;
+  }
+}
+
+monthSel.addEventListener('change', render);
+document.getElementById('btnRefresh').addEventListener('click', loadAndRender);
+loadAndRender();
+</script>
+</body>
+</html>
