@@ -196,7 +196,7 @@
     </div>
 
     <div class="card" style="margin-bottom:var(--gap);">
-      <h3>Seguimiento por cliente</h3>
+      <h3>Seguimiento de morosidad por cliente</h3>
       <div class="filter-row" style="margin-top:12px;">
         <button class="mor-filter active" data-filter="todos">Todos</button>
         <button class="mor-filter" data-filter="riesgo">🟠🔴 Riesgo/Malo</button>
@@ -207,7 +207,7 @@
         <table id="morosidadTable">
           <thead>
             <tr>
-              <th>Cliente</th><th>Luz FH</th><th>Luz L7</th><th>Agua L7</th><th>Arriendo</th><th>Total deuda</th><th>Estado</th>
+              <th>Cliente</th><th>Luz FH</th><th>Luz L7</th><th>Agua L7</th><th>Arriendo</th><th>Total deuda</th><th>Comportamiento de pago</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -407,9 +407,10 @@ function flexNum(v){
 function pct(v){ return (typeof v === 'number') ? v * 100 : null; }
 
 const PROP_LABELS = ['F. Hualpencillo','Lote 7','Lote 8','Lote 1A','Lote 5A','Golondrinas','Fundo Lenga','Chacra'];
+// Mismos colores que los círculos de la columna Estado en "Seguimiento de morosidad por cliente" (🔵🟡🟠🔴)
 const CALIF_COLORS = {
-  'BUENO': '#3DDC84', 'REGULAR': '#F2C94A', 'MALO': '#F2994A',
-  'RIESGOSO': '#FF6B5B', 'TOMAR ACCIONES': '#C8492B',
+  'BUENO': '#4F8EF7', 'REGULAR': '#F2C94A', 'MALO': '#F2994A',
+  'RIESGOSO': '#F2994A', 'TOMAR ACCIONES': '#E24A4A',
 };
 
 async function fetchAllData(){
