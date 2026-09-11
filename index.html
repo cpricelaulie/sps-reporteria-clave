@@ -280,14 +280,14 @@
     <div class="kpi-row">
       <div class="kpi-card"><div class="kpi-label">UF/mes total</div><div class="kpi-value" id="k-ufmes">-</div></div>
       <div class="kpi-card"><div class="kpi-label">M² arrendados</div><div class="kpi-value" id="k-m2">-</div></div>
-      <div class="kpi-card"><div class="kpi-label">UF/m² (mes)</div><div class="kpi-value" id="k-ufm2mes">-</div></div>
       <div class="kpi-card"><div class="kpi-label">Nº contratos activos</div><div class="kpi-value" id="k-cttos">-</div></div>
+      <div class="kpi-card accent"><div class="kpi-label">Contratos a vencer &lt;90d</div><div class="kpi-value" id="k-venc90">-</div></div>
     </div>
     <div class="kpi-row">
       <div class="kpi-card"><div class="kpi-label">UF/mes s/OH</div><div class="kpi-value" id="k-ufmessoh">-</div></div>
       <div class="kpi-card"><div class="kpi-label">M² s/OH</div><div class="kpi-value" id="k-m2soh">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">UF/m² s/OH</div><div class="kpi-value" id="k-ufm2soh">-</div></div>
       <div class="kpi-card"><div class="kpi-label">UF/mes proy. Dic.</div><div class="kpi-value" id="k-ufmesdic">-</div></div>
-      <div class="kpi-card accent"><div class="kpi-label">Contratos a vencer &lt;90d</div><div class="kpi-value" id="k-venc90">-</div></div>
     </div>
     <div class="grid-2">
       <div class="card">
@@ -391,6 +391,15 @@ function isMonthRow(row){
   return row[0] != null && typeof row[0] === 'string' && !SUMMARY_LABEL.test(row[0]);
 }
 function numOrNull(v){ return typeof v === 'number' ? v : null; }
+// Algunas celdas (ej. Y18:Y30, UF/mes proy. Dic.) llegan como texto con separador de miles ("1,271.59")
+function flexNum(v){
+  if(typeof v === 'number') return v;
+  if(typeof v === 'string'){
+    const n = parseFloat(v.replace(/,/g, ''));
+    return Number.isNaN(n) ? null : n;
+  }
+  return null;
+}
 function pct(v){ return (typeof v === 'number') ? v * 100 : null; }
 
 const PROP_LABELS = ['F. Hualpencillo','Lote 7','Lote 8','Lote 1A','Lote 5A','Golondrinas','Fundo Lenga','Chacra'];
@@ -428,9 +437,9 @@ async function fetchAllData(){
   }));
 
   const CARTERA_ALL = rowsOf(carteraT).filter(isMonthRow).map(r => ({
-    nCttos: numOrNull(r[2]), ufMesTotal: numOrNull(r[3]), m2: numOrNull(r[4]), ufM2Mes: numOrNull(r[5]),
+    nCttos: numOrNull(r[2]), ufMesTotal: numOrNull(r[3]), m2: numOrNull(r[4]),
     ufMesSOH: numOrNull(r[6]), m2SOH: numOrNull(r[7]), ufM2SOH: numOrNull(r[8]),
-    ufMesProyDic: numOrNull(r[24]),
+    ufMesProyDic: flexNum(r[24]),
     cttosVenc90: numOrNull(r[10]),
     props: { FH: r[18] || 0, L7: r[19] || 0, L8: r[20] || 0, FL: r[21] || 0, GL: r[22] || 0, A5A: r[23] || 0 },
   }));
@@ -509,8 +518,10 @@ function fmtNum(v, decimals){
 function tooltipUnit(suffixByAxis, decimals){
   decimals = decimals===undefined ? 1 : decimals;
   return function(ctx){
-    let v = typeof ctx.parsed === 'number' ? ctx.parsed : ctx.parsed.y;
-    if(v===undefined||v===null) v = ctx.parsed.x;
+    let v;
+    if(typeof ctx.parsed === 'number'){ v = ctx.parsed; }
+    else if(ctx.chart.options.indexAxis === 'y'){ v = ctx.parsed.x; } // barras horizontales: el valor real va en x, no en y (y es el índice de categoría)
+    else { v = ctx.parsed.y; if(v===undefined||v===null) v = ctx.parsed.x; }
     const label = ctx.label!=null && ctx.dataset.label==null ? ctx.label : ctx.dataset.label;
     if(typeof v!=='number') return label+': '+v;
     const axisId = ctx.dataset.yAxisID || 'y';
@@ -626,12 +637,12 @@ function render(){
 
   document.getElementById('k-ufmes').textContent = fmtNum(c.ufMesTotal, 1);
   document.getElementById('k-m2').textContent = fmtNum(c.m2, 0);
-  document.getElementById('k-ufm2mes').textContent = fmtNum(c.ufM2Mes, 4);
   document.getElementById('k-cttos').textContent = c.nCttos!=null ? c.nCttos : '-';
   document.getElementById('k-venc90').textContent = c.cttosVenc90==null?'-':c.cttosVenc90;
   document.getElementById('k-ufmesdic').textContent = fmtNum(c.ufMesProyDic, 1);
   document.getElementById('k-ufmessoh').textContent = fmtNum(c.ufMesSOH, 1);
   document.getElementById('k-m2soh').textContent = fmtNum(c.m2SOH, 0);
+  document.getElementById('k-ufm2soh').textContent = fmtNum(c.ufM2SOH, 4);
 
   let accV=0, accL=0, accG=0, accArr=0;
   const accVisitasProp = new Array(8).fill(0), accLeadsProp = new Array(8).fill(0);
