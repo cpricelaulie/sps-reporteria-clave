@@ -112,10 +112,10 @@
   .card .hint{font-size:10.5px;color:var(--text-secondary);margin:0 0 12px;}
   .card canvas{max-height:260px;}
 
-  .table-scroll{overflow:auto;-webkit-overflow-scrolling:touch;max-height:60vh;border-radius:10px;}
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;}
   table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;}
   thead th{
-    position:sticky;top:0;z-index:2;background:var(--bg-card);
+    background:var(--bg-card);
     text-align:left;padding:8px 9px;border-bottom:2px solid var(--border-subtle);
     color:var(--text-secondary);font-weight:700;font-size:10.5px;text-transform:uppercase;
     letter-spacing:.3px;cursor:pointer;white-space:nowrap;
@@ -124,8 +124,7 @@
   tbody td{padding:8px 9px;border-bottom:1px solid var(--border-subtle);white-space:nowrap;color:var(--text-primary);}
   tbody tr:last-child td{border-bottom:none;}
   tbody tr:hover td{background:var(--bg-card-hover);}
-  thead th:first-child, tbody td:first-child{position:sticky;left:0;z-index:1;background:var(--bg-card);}
-  thead th:first-child{z-index:3;}
+  thead th:first-child, tbody td:first-child{position:sticky;left:0;z-index:1;background:var(--bg-card);max-width:150px;overflow:hidden;text-overflow:ellipsis;}
   tbody tr:hover td:first-child{background:var(--bg-card-hover);}
   tbody td:last-child, thead th:last-child{padding-right:16px;}
 
@@ -577,7 +576,7 @@ function renderMorosidad(filter){
     totals.arriendo += r.arriendo; totals.total += r.total;
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${r.cliente}</td>
+      <td title="${r.cliente}">${r.cliente}</td>
       <td>${r.luzFH?fmtM(r.luzFH):'-'}</td>
       <td>${r.luzL7?fmtM(r.luzL7):'-'}</td>
       <td>${r.aguaL7?fmtM(r.aguaL7):'-'}</td>
