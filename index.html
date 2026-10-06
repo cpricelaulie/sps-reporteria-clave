@@ -245,7 +245,7 @@
         <canvas id="chartPago"></canvas>
       </div>
       <div class="card">
-        <h3>$ en riesgo y días de mora promedio</h3>
+        <h3>% pagado con más de 20 días de atraso, días de mora promedio y fecha promedio de pago</h3>
         <canvas id="chartMora"></canvas>
       </div>
     </div>
@@ -677,14 +677,22 @@ function render(){
       scales:{ y:{min:0, beginAtZero:true, title:{display:true,text:'$M'}}, y1:{position:'right',min:0,max:10,title:{display:true,text:'%'},grid:{drawOnChartArea:false}} } }
   });
 
+  const pctAtraso20 = d => (d.enRiesgo!=null && d.aPagar) ? d.enRiesgo/d.aPagar*100 : null;
   makeChart('chartMora', {
     data:{ labels, datasets:[
-      {type:'bar', label:'$ en riesgo (M)', data: PAGO.slice(0,i+1).map(d=>toM(d.enRiesgo)), backgroundColor:COLOR_ORANGE+'CC', yAxisID:'y'},
-      {type:'line', label:'Días mora prom.', data: PAGO.slice(0,i+1).map(d=>d.diasMoraProm), borderColor:COLOR_MUTED, borderWidth:2.5, tension:.3, yAxisID:'y1', spanGaps:false}
+      {type:'bar', label:'% pagado con más de 20 días de atraso', data: PAGO.slice(0,i+1).map(pctAtraso20), backgroundColor:COLOR_ORANGE+'CC', yAxisID:'y'},
+      {type:'line', label:'Días de mora promedio', data: PAGO.slice(0,i+1).map(d=>d.diasMoraProm), borderColor:COLOR_MUTED, backgroundColor:COLOR_MUTED, borderWidth:2.5, tension:.3, yAxisID:'y1', spanGaps:false},
+      {type:'line', label:'Fecha promedio de pago', data: PAGO.slice(0,i+1).map(d=>d.fechaPagoProm), borderColor:COLOR_TEAL, backgroundColor:COLOR_TEAL, borderWidth:2.5, borderDash:[4,3], tension:.3, yAxisID:'y1', spanGaps:false}
     ]},
     options:{ responsive:true, interaction:{mode:'index',intersect:false},
-      plugins:{ tooltip:{ callbacks:{ label: tooltipUnit({y:' M', y1:' días'}) } } },
-      scales:{ y:{title:{display:true,text:'$M'}}, y1:{position:'right',min:0,title:{display:true,text:'días'},grid:{drawOnChartArea:false}} } }
+      plugins:{ tooltip:{ callbacks:{ label: ctx => {
+        const v = ctx.parsed.y;
+        if(typeof v!=='number') return ctx.dataset.label+': -';
+        if(ctx.datasetIndex===0) return ctx.dataset.label+': '+v.toLocaleString('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+        if(ctx.datasetIndex===2) return ctx.dataset.label+': día '+Math.round(v);
+        return ctx.dataset.label+': '+Math.round(v)+' días';
+      } } } },
+      scales:{ y:{min:0,title:{display:true,text:'%'}}, y1:{position:'right',min:0,title:{display:true,text:'días'},grid:{drawOnChartArea:false}} } }
   });
 
   makeChart('chartFinanciero', {
