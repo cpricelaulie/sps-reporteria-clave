@@ -4,34 +4,33 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SPS SpA · Reportería Clave</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Catamaran:wght@300;400;600;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
 <style>
   :root{
-    --bg-page-1:#1B1140;
-    --bg-page-2:#0A0714;
-    --bg-page-3:#050308;
-    --bg-card:#17112C;
-    --bg-card-hover:#1F1838;
-    --bg-hero:linear-gradient(135deg,#1B1140 0%,#241448 45%,#3B1E5C 100%);
-    --text-primary:#F5F3FA;
-    --text-secondary:#9C93B8;
-    --text-on-dark-muted:#C8BEDF;
-    --accent:#8B6FF0;
-    --accent-2:#B18CFF;
-    --teal:#4FD1C5;
-    --gold:#F2C94A;
-    --pink:#EC6FBB;
-    --accent-orange:#F2994A;
+    --bg-page-1:#22333F;
+    --bg-page-2:#131C22;
+    --bg-page-3:#0B1115;
+    --bg-card:#19242B;
+    --bg-card-hover:#22313A;
+    --bg-hero:linear-gradient(135deg,#131C22 0%,#1B3550 55%,#0E62C8 140%);
+    --text-primary:#EFEEEA;
+    --text-secondary:#9AA1A6;
+    --text-on-dark-muted:#C3C8CB;
+    --accent:#0E62C8;
+    --accent-2:#6FAAEE;
     --danger:#FF6B5B;
     --ok:#3DDC84;
-    --border-subtle:rgba(255,255,255,.08);
+    --border-subtle:rgba(239,238,234,.09);
     --radius-lg:18px;
     --radius:14px;
     --gap:14px;
   }
   *{box-sizing:border-box;}
   body{
-    margin:0;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;
+    margin:0;font-family:'Catamaran',Arial,sans-serif;
     background:radial-gradient(circle at 25% -10%, var(--bg-page-1) 0%, var(--bg-page-2) 55%, var(--bg-page-3) 100%);
     background-attachment:fixed;
     color:var(--text-primary);
@@ -55,7 +54,7 @@
     background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.25);
     border-radius:9px;padding:8px 14px;font-size:12.5px;
   }
-  .hero select option{background:#17112C;color:#fff;}
+  .hero select option{background:#19242B;color:#fff;}
   .btn-refresh{
     background:var(--accent);color:#fff;border:none;border-radius:9px;padding:8px 14px;
     font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;
@@ -128,7 +127,7 @@
   tbody tr:hover td:first-child{background:var(--bg-card-hover);}
   tbody td:last-child, thead th:last-child{padding-right:16px;}
 
-  .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10.5px;font-weight:600;background:rgba(139,111,240,.18);color:var(--accent-2);}
+  .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10.5px;font-weight:600;background:rgba(14,98,200,.28);color:var(--accent-2);}
   .pill.bad{background:rgba(255,107,91,.18);color:var(--danger);}
 
   .filter-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
@@ -143,7 +142,7 @@
     font-size:12.5px;font-weight:600;border:1px solid var(--border-subtle);
   }
   .banner.error{display:block;background:rgba(255,107,91,.1);color:var(--danger);}
-  .banner.loading{display:block;background:rgba(139,111,240,.1);color:var(--accent-2);}
+  .banner.loading{display:block;background:rgba(14,98,200,.18);color:var(--accent-2);}
 
   @media (max-width:900px){
     .kpi-row{grid-template-columns:repeat(2,1fr);}
@@ -356,11 +355,12 @@
 // El Sheet debe estar compartido como "Cualquiera con el enlace puede ver".
 const SHEET_ID = '1yi7P5px1eQ9pz49lzolyWaaHvoUIq-CC17iewsmB7OI';
 
-Chart.defaults.color = '#9C93B8';
-Chart.defaults.borderColor = 'rgba(255,255,255,.08)';
-Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15,10,28,.95)';
-Chart.defaults.plugins.tooltip.titleColor = '#F5F3FA';
-Chart.defaults.plugins.tooltip.bodyColor = '#F5F3FA';
+Chart.defaults.color = '#9AA1A6';
+Chart.defaults.font.family = "'Catamaran', Arial, sans-serif";
+Chart.defaults.borderColor = 'rgba(239,238,234,.08)';
+Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(19,28,34,.96)';
+Chart.defaults.plugins.tooltip.titleColor = '#EFEEEA';
+Chart.defaults.plugins.tooltip.bodyColor = '#EFEEEA';
 Chart.defaults.plugins.tooltip.borderColor = 'rgba(255,255,255,.1)';
 Chart.defaults.plugins.tooltip.borderWidth = 1;
 Chart.defaults.plugins.tooltip.padding = 10;
@@ -538,12 +538,13 @@ function tooltipUnit(suffixByAxis, decimals){
   };
 }
 
-const COLOR_PURPLE = '#8B6FF0';
-const COLOR_ORANGE = '#F2994A';
-const COLOR_MUTED = '#C8BEDF';
-const COLOR_TEAL = '#4FD1C5';
-const COLOR_GOLD = '#F2C94A';
-const COLOR_PINK = '#EC6FBB';
+// Paleta oficial SPS (context/sps/brand.md): Azul SPS #0E62C8 (aclarado para legibilidad en fondo oscuro), Hueso #EFEEEA, grises
+const COLOR_PURPLE = '#2B7FE3';
+const COLOR_ORANGE = '#EFEEEA';
+const COLOR_MUTED = '#9AA1A6';
+const COLOR_TEAL = '#7DB6F2';
+const COLOR_GOLD = '#DDDFDE';
+const COLOR_PINK = '#EFEEEA';
 
 const monthSel = document.getElementById('monthSel');
 
