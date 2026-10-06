@@ -410,10 +410,10 @@ function flexNum(v){
 function pct(v){ return (typeof v === 'number') ? v * 100 : null; }
 
 const PROP_LABELS = ['F. Hualpencillo','Lote 7','Lote 8','Lote 1A','Lote 5A','Golondrinas','Fundo Lenga','Chacra'];
-// Mismos colores que los círculos de la columna Estado en "Seguimiento de morosidad por cliente" (🔵🟡🟠🔴)
+// Paleta SPS (context/sps/brand.md) en degradé de azul a gris según gravedad
 const CALIF_COLORS = {
-  'BUENO': '#4F8EF7', 'REGULAR': '#F2C94A', 'MALO': '#F2994A',
-  'RIESGOSO': '#F2994A', 'TOMAR ACCIONES': '#E24A4A',
+  'BUENO': '#2B7FE3', 'REGULAR': '#7DB6F2', 'MALO': '#DDDFDE',
+  'RIESGOSO': '#9AA1A6', 'TOMAR ACCIONES': '#5A7385',
 };
 
 async function fetchAllData(){
@@ -785,11 +785,15 @@ function render(){
   makeChart('chartCalificacion', {
     type:'doughnut',
     data:{ labels: CALIF.map(x=>x.calificacion), datasets:[
-      { data: CALIF.map(x=>Math.round(x.pctClientes*10)/10), backgroundColor: CALIF.map(x=>CALIF_COLORS[(x.calificacion||'').toUpperCase()] || COLOR_MUTED), borderWidth:0 }
+      { data: CALIF.map(x=>Math.round(x.pctClientes*10)/10), backgroundColor: CALIF.map(x=>CALIF_COLORS[(x.calificacion||'').toUpperCase()] || COLOR_MUTED), borderColor:'#19242B', borderWidth:2 }
     ]},
     options:{ responsive:true, plugins:{
       legend:{position:'bottom', labels:{boxWidth:12}},
-      tooltip:{callbacks:{label: tooltipUnit('%')}}
+      tooltip:{callbacks:{label: ctx => {
+        const c = CALIF[ctx.dataIndex];
+        const n = c ? c.nClientes : 0;
+        return ctx.label+': '+ctx.parsed.toLocaleString('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1})+'% · '+n+(n===1?' cliente':' clientes');
+      }}}
     } }
   });
 }
